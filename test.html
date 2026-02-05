@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>De Elite Computer Receipt</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white p-8 rounded shadow w-full max-w-lg">
+    <h2 class="text-2xl font-bold mb-4 text-center">De Elite Computer</h2>
+
+    <input id="fullName" class="w-full p-2 border rounded mb-2" placeholder="Full Name">
+    <input id="className" class="w-full p-2 border rounded mb-2" placeholder="Class">
+    <input id="email" type="email" class="w-full p-2 border rounded mb-2" placeholder="Email">
+    <input id="laptopModel" class="w-full p-2 border rounded mb-2" placeholder="Laptop Model">
+    <textarea id="computerIssue" class="w-full p-2 border rounded mb-2" placeholder="Laptop Issue"></textarea>
+    <input id="modeOfPayment" class="w-full p-2 border rounded mb-4" placeholder="Mode of Payment">
+
+    <button id="submitBtn" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+      Save & Download PDF
+    </button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, addDoc, collection, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAFsuQYphGi7toy_dAwaYgWewfX9eRoERY",
+      authDomain: "de-elite-receipts.firebaseapp.com",
+      projectId: "de-elite-receipts",
+      storageBucket: "de-elite-receipts.firebasestorage.app",
+      messagingSenderId: "621967927342",
+      appId: "1:621967927342:web:9b3bf55d67e56356eb57bf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    document.getElementById("submitBtn").addEventListener("click", async () => {
+      try {
+        const data = {
+          fullName: fullName.value,
+          class: className.value,
+          email: email.value,
+          laptopModel: laptopModel.value,
+          computerIssue: computerIssue.value,
+          modeOfPayment: modeOfPayment.value,
+          createdAt: serverTimestamp()
+        };
+
+        const docRef = await addDoc(collection(db, "receipts"), data);
+
+        generatePDF(data, docRef.id);
+
+        alert("✅ Signup saved successfully");
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error saving signup");
+      }
+    });
+
+    function generatePDF(data, id) {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+
+      pdf.setFontSize(18);
+      pdf.text("De Elite Computer - Service Receipt", 20, 20);
+
+      pdf.setFontSize(12);
+      pdf.text(`Receipt ID: ${id}`, 20, 35);
+      pdf.text(`Date: ${new Date().toLocaleString()}`, 20, 45);
+
+      pdf.text(`Full Name: ${data.fullName}`, 20, 60);
+      pdf.text(`Class: ${data.class}`, 20, 70);
+      pdf.text(`Email: ${data.email}`, 20, 80);
+      pdf.text(`Laptop Model: ${data.laptopModel}`, 20, 90);
+      pdf.text(`Issue: ${data.computerIssue}`, 20, 100);
+      pdf.text(`Payment Mode: ${data.modeOfPayment}`, 20, 110);
+
+      pdf.save(`receipt-${id}.pdf`);
+    }
+  </script>
+
+</body>
+</html>
