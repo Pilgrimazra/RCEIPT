@@ -2,42 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Signup & Receipt</title>
+  <title>De Elite Computer Receipt</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gray-200 min-h-screen flex items-center justify-center">
 
-  <div class="bg-white p-8 rounded shadow w-full max-w-lg">
-    <h2 class="text-2xl font-bold mb-4 text-center">De Elite Computer</h2>
+  <div class="bg-gray-800 text-gray-100 p-10 rounded-xl shadow-xl w-full max-w-lg">
+    <h2 class="text-3xl font-semibold mb-6 text-center text-yellow-400">De Elite Computer</h2>
 
-    <div class="space-y-3">
-      <input id="fullName" class="w-full p-2 border rounded" placeholder="Full Name">
-      <input id="className" class="w-full p-2 border rounded" placeholder="Class">
-      <input id="email" type="email" class="w-full p-2 border rounded" placeholder="Email">
-      <input id="laptopModel" class="w-full p-2 border rounded" placeholder="Laptop Model">
-      <textarea id="computerIssue" class="w-full p-2 border rounded" placeholder="Laptop Issue"></textarea>
-      <input id="modeOfPayment" class="w-full p-2 border rounded" placeholder="Mode of Payment">
+    <input id="fullName" class="w-full p-3 rounded mb-3 text-gray-800" placeholder="Full Name">
+    <input id="className" class="w-full p-3 rounded mb-3 text-gray-800" placeholder="Class">
+    <input id="email" type="email" class="w-full p-3 rounded mb-3 text-gray-800" placeholder="Email">
+    <input id="laptopModel" class="w-full p-3 rounded mb-3 text-gray-800" placeholder="Laptop Model">
+    <textarea id="computerIssue" class="w-full p-3 rounded mb-3 text-gray-800" placeholder="Laptop Issue"></textarea>
+    <input id="modeOfPayment" class="w-full p-3 rounded mb-4 text-gray-800" placeholder="Mode of Payment">
 
-      <button onclick="submitForm()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-        Save & Download PDF
-      </button>
-    </div>
+    <button id="submitBtn" class="w-full bg-yellow-500 text-gray-900 p-3 rounded hover:bg-yellow-600 font-semibold">
+      Save & Download PDF
+    </button>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, addDoc, collection, serverTimestamp } 
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAFsuQYphGi7toy_dAwaYgWewfX9eRoERY",
@@ -51,60 +43,60 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    console.log("🔥 Firebase connected");
-
-    window.submitForm = async () => {
+    document.getElementById("submitBtn").addEventListener("click", async () => {
       try {
-        const receiptData = {
-          fullName: document.getElementById("fullName").value,
-          class: document.getElementById("className").value,
-          email: document.getElementById("email").value,
-          laptopModel: document.getElementById("laptopModel").value,
-          computerIssue: document.getElementById("computerIssue").value,
-          modeOfPayment: document.getElementById("modeOfPayment").value,
+        const data = {
+          fullName: fullName.value,
+          class: className.value,
+          email: email.value,
+          laptopModel: laptopModel.value,
+          computerIssue: computerIssue.value,
+          modeOfPayment: modeOfPayment.value,
           createdAt: serverTimestamp()
         };
 
-        console.log("📦 Sending data:", receiptData);
+        const docRef = await addDoc(collection(db, "receipts"), data);
 
-        const docRef = await addDoc(
-          collection(db, "receipts"),
-          receiptData
-        );
+        generatePDF(data, docRef.id);
 
-        console.log("✅ Saved with ID:", docRef.id);
+        alert("✅ Signup saved successfully");
 
-        generatePDF(receiptData, docRef.id);
-
-        alert("✅ Signup successful!");
-
-      } catch (error) {
-        console.error("❌ Firestore Error:", error);
-        alert("Signup failed. Check console.");
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error saving signup");
       }
-    };
+    });
 
-    function generatePDF(data, receiptId) {
+    function generatePDF(data, id) {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+      const pdf = new jsPDF();
 
-      doc.setFontSize(18);
-      doc.text("Service Receipt", 20, 20);
+      // WATERMARK
+      pdf.setTextColor(200, 200, 200); // light gray
+      pdf.setFontSize(50);
+      pdf.text("DE ELITE COMPUTER", 35, 150, { angle: 45, opacity: 0.1 });
 
-      doc.setFontSize(12);
-      doc.text(`Receipt ID: ${receiptId}`, 20, 35);
-      doc.text(`Date: ${new Date().toLocaleString()}`, 20, 45);
+      // HEADERS
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(20);
+      pdf.text("Service Receipt", 20, 30);
 
-      doc.text(`Full Name: ${data.fullName}`, 20, 60);
-      doc.text(`Class: ${data.class}`, 20, 70);
-      doc.text(`Email: ${data.email}`, 20, 80);
-      doc.text(`Laptop Model: ${data.laptopModel}`, 20, 90);
-      doc.text(`Issue: ${data.computerIssue}`, 20, 100);
-      doc.text(`Payment Mode: ${data.modeOfPayment}`, 20, 110);
+      pdf.setFontSize(12);
+      pdf.setTextColor(50, 50, 50);
+      pdf.text(`Receipt ID: ${id}`, 20, 45);
+      pdf.text(`Date: ${new Date().toLocaleString()}`, 20, 55);
 
-      doc.save(`receipt-${receiptId}.pdf`);
+      // CUSTOMER DETAILS
+      pdf.setFontSize(14);
+      pdf.text(`Full Name: ${data.fullName}`, 20, 75);
+      pdf.text(`Class: ${data.class}`, 20, 85);
+      pdf.text(`Email: ${data.email}`, 20, 95);
+      pdf.text(`Laptop Model: ${data.laptopModel}`, 20, 105);
+      pdf.text(`Issue: ${data.computerIssue}`, 20, 115);
+      pdf.text(`Payment Mode: ${data.modeOfPayment}`, 20, 125);
+
+      pdf.save(`receipt-${id}.pdf`);
     }
   </script>
-
 </body>
 </html>
