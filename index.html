@@ -4,11 +4,9 @@
   <meta charset="UTF-8" />
   <title>De Elite Computer Receipt</title>
 
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-
 <body class="bg-gradient-to-br from-blue-100 via-blue-200 to-indigo-100 min-h-screen flex items-center justify-center">
 
   <div class="bg-white shadow-2xl rounded-2xl w-full max-w-lg p-10 border-t-8 border-yellow-500 relative">
@@ -62,6 +60,7 @@
 
         const docRef = await addDoc(collection(db, "receipts"), data);
 
+        // ✅ Generate PDF synchronously with Base64 logo
         generatePDF(data, docRef.id);
 
         alert("✅ Signup saved successfully");
@@ -76,18 +75,18 @@
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF();
 
-      // ✅ Base64 Logo (replace with your actual logo converted to base64)
+      // Base64 logo (replace with your actual logo converted to Base64)
       const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABTklEQVQ4T2NkoBAwUqifQyMjIwMD4z8////uPzAwMDR/+f2f9Hn8TyMnJ+GdY6MDAwMrR6++/v7bW1tbn/+3fxMTExWQT8/f39mZn5//3//x8fHyc/X19erq6vl5eXi4uLiGJj4xMvX/++nX4HBwcBAfHx8f///w8PD7+FhYWD4+/f3L5+fn//v7+/v7+/38fHx8HBwcP///8CysrJwcHBwcXFxc1DQ0Nw8PD5+fn6+vrx8fHxcXFx8fH8+Pj5+fnx8fH8/Pz8/f38fHx8fHx8fH4GBgYFBQUFBwcHBwYGhoZGBgYGBgYGBoaGdnZ2dnc3NzAwMDIwMDAwMDBw8PDw8PDw8PDw8PDw8P+Hi4uLh4eHh4eHh4eHh4eHg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4OAfZsAMZ6mjs3gyx4AAAAASUVORK5CYII=";
 
-      // Draw Logo (top-right)
+      // Draw logo (top-right)
       pdf.addImage(logoBase64, 'PNG', 150, 10, 40, 40); // x, y, width, height
 
-      // WATERMARK
+      // Watermark
       pdf.setTextColor(200, 200, 200);
       pdf.setFontSize(50);
       pdf.text("DE ELITE COMPUTER", 35, 150, { angle: 45, opacity: 0.1 });
 
-      // HEADERS
+      // Header
       pdf.setTextColor(0, 0, 0);
       pdf.setFontSize(20);
       pdf.text("Service Receipt", 20, 30);
@@ -97,7 +96,7 @@
       pdf.text(`Receipt ID: ${id}`, 20, 45);
       pdf.text(`Date: ${new Date().toLocaleString()}`, 20, 55);
 
-      // CUSTOMER DETAILS
+      // Customer details
       pdf.setFontSize(14);
       pdf.text(`Full Name: ${data.fullName}`, 20, 75);
       pdf.text(`Class: ${data.class}`, 20, 85);
@@ -106,6 +105,7 @@
       pdf.text(`Issue: ${data.computerIssue}`, 20, 115);
       pdf.text(`Payment Mode: ${data.modeOfPayment}`, 20, 125);
 
+      // ✅ Save PDF
       pdf.save(`receipt-${id}.pdf`);
     }
   </script>
