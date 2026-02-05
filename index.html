@@ -29,69 +29,79 @@
     </div>
   </div>
 
-  <!-- Firebase + App Logic -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 🔥 Your Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAFsuQYphGi7toy_dAwaYgWewfX9eRoERY",
-      authDomain: "de-elite-receipts.firebaseapp.com",
-      projectId: "de-elite-receipts",
-      storageBucket: "de-elite-receipts.firebasestorage.app",
-      messagingSenderId: "621967927342",
-      appId: "1:621967927342:web:9b3bf55d67e56356eb57bf"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAFsuQYphGi7toy_dAwaYgWewfX9eRoERY",
+    authDomain: "de-elite-receipts.firebaseapp.com",
+    projectId: "de-elite-receipts",
+    storageBucket: "de-elite-receipts.firebasestorage.app",
+    messagingSenderId: "621967927342",
+    appId: "1:621967927342:web:9b3bf55d67e56356eb57bf"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    window.submitForm = async function () {
-      const data = {
-        name: name.value,
-        class: document.getElementById("class").value,
-        email: email.value,
-        model: model.value,
-        issue: issue.value,
-        amount: amount.value,
-        date: new Date().toLocaleString(),
+  window.submitForm = async () => {
+    try {
+      const receiptData = {
+        fullName: document.getElementById("fullName").value,
+        class: document.getElementById("className").value,
+        email: document.getElementById("email").value,
+        laptopModel: document.getElementById("laptopModel").value,
+        computerIssue: document.getElementById("computerIssue").value,
+        modeOfPayment: document.getElementById("modeOfPayment").value,
         createdAt: serverTimestamp()
       };
 
-      // Save to Firestore
-      const docRef = await addDoc(collection(db, "receipts"), data);
-      const receiptNumber = docRef.id;
+      // ✅ Save to Firestore
+      const docRef = await addDoc(
+        collection(db, "receipts"),
+        receiptData
+      );
 
-      generatePDF(data, receiptNumber);
-    };
+      // ✅ Generate PDF using Firestore ID
+      generatePDF(receiptData, docRef.id);
 
-    function generatePDF(data, receiptNumber) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+      alert("✅ Signup successful!");
 
-      doc.setFontSize(18);
-      doc.text("Service Receipt", 20, 20);
-
-      doc.setFontSize(12);
-      doc.text(`Receipt No: ${receiptNumber}`, 20, 35);
-      doc.text(`Date: ${data.date}`, 20, 45);
-
-      doc.text(`Name: ${data.name}`, 20, 60);
-      doc.text(`Class: ${data.class}`, 20, 70);
-      doc.text(`Email: ${data.email}`, 20, 80);
-      doc.text(`Laptop Model: ${data.model}`, 20, 90);
-      doc.text(`Laptop Issue: ${data.issue}`, 20, 100);
-      doc.text(`Amount Paid: ₦${data.amount}`, 20, 110);
-
-      doc.save(`receipt-${receiptNumber}.pdf`);
+    } catch (error) {
+      console.error("❌ Firestore Error:", error);
+      alert("Signup failed. Check console.");
     }
-  </script>
+  };
+
+  function generatePDF(data, receiptId) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Service Receipt", 20, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Receipt ID: ${receiptId}`, 20, 35);
+    doc.text(`Date: ${new Date().toLocaleString()}`, 20, 45);
+
+    doc.text(`Full Name: ${data.fullName}`, 20, 60);
+    doc.text(`Class: ${data.class}`, 20, 70);
+    doc.text(`Email: ${data.email}`, 20, 80);
+    doc.text(`Laptop Model: ${data.laptopModel}`, 20, 90);
+    doc.text(`Issue: ${data.computerIssue}`, 20, 100);
+    doc.text(`Payment Mode: ${data.modeOfPayment}`, 20, 110);
+
+    doc.save(`receipt-${receiptId}.pdf`);
+  }
+</script>
+
+
 
 </body>
 </html>
